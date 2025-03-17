@@ -15,6 +15,7 @@ fun main() {
         book1, book2, book3, dvd1, dvd2, dvd3, news1, news2, news3
     )
 
+    
     val manager = LibraryManager(itemList)
 
     while (true) {
