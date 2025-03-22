@@ -1,21 +1,27 @@
 ﻿package com.example.library
 
 fun main() {
-    val book1: Item = Book(1, "mybook1", "I", 20, true)
-    val dvd1: Item = Disk(2, "diisk1", "DVD", true)
-    val dvd2: Item = Disk(22, "diisk2", "СD", true)
-    val dvd3: Item = Disk(23, "diisk3", "DVD", true)
-    val news1: Item = Newspaper(31, "news1", 412, true)
-    val news2: Item = Newspaper(32, "news2", 412, true)
-    val news3: Item = Newspaper(33, "news3", 412, true)
-    val book2: Item = Book(12, "mybook2", "I", 20, true)
-    val book3: Item = Book(123, "mybook3", "I", 20, true)
+    val book1: Book = Book(1, "mybook1", "I", 20, true)
+    val dvd1: Disk = Disk(2, "diisk1", "DVD", true)
+    val dvd2: Disk = Disk(22, "diisk2", "СD", true)
+    val dvd3: Disk = Disk(23, "diisk3", "DVD", true)
+    val news1: Newspaper = Newspaper(31, "news1", 412, "April", true)
+    val news2: Newspaper = Newspaper(32, "news2", 412, "March", true)
+    val news3: Newspaper = Newspaper(33, "news3", 412, "June", true)
+    val book2: Book = Book(12, "mybook2", "I", 20, true)
+    val book3: Book = Book(123, "mybook3", "I", 20, true)
 
     val itemList: MutableList<Item> = mutableListOf(
         book1, book2, book3, dvd1, dvd2, dvd3, news1, news2, news3
     )
 
     val manager = LibraryManager(itemList)
+    val purchaseManager = PurchaseManager()
+    val diskShop = DiskShop()
+    val bookShop = BookShop()
+    val newspaperShop = NewspaperShop()
+    val scanner = PapperScanner(book3).toDisk().fullInfo()
+    anyListToTypeList<Book>(itemList).forEach { item -> item.shortInfo() }
 
     while (true) {
         val welcome = """
@@ -23,6 +29,7 @@ fun main() {
             1. Show books
             2. Show newspapers
             3. Show disks
+            4. Purchase Manager
         """.trimIndent()
         println(welcome)
 
@@ -45,15 +52,31 @@ fun main() {
                 manager.itemsFlow(Disk::class.java)
             }
 
+            4 -> {
+                val purchString = """
+                     Choose a shop
+                1. Books shop
+                2. Newspaper shop
+                3. Disks shop 
+                4. Return to main menu """.trimIndent()
+                println(purchString)
+                when (readlnOrNull()?.toIntOrNull()) {
+                    1 -> purchaseManager.buy(bookShop)
+                    2 -> purchaseManager.buy(newspaperShop)
+                    3 -> purchaseManager.buy(diskShop)
+                    else -> println("Returning to main menu")
+                }
+            }
+
             else -> println("Invalid option. Please try again")
         }
     }
 }
 
 open class Item(
-    protected val itemId: Int,
-    protected val itemName: String,
-    protected var isAvailable: Boolean
+    val itemId: Int,
+    val itemName: String,
+    var isAvailable: Boolean
 ) {
     fun shortInfo() {
         println("$itemName available: ${if (isAvailable) "Yes" else "No"}")
@@ -110,13 +133,14 @@ class Book(
 }
 
 class Newspaper(
-    newspaperId: Int,
-    newspaperName: String,
+    private val newspaperId: Int,
+    private val newspaperName: String,
     private val newspaperNumber: Int,
+    private val month: String,
     isAvailable: Boolean
 ) : Item(newspaperId, newspaperName, isAvailable), Readable {
     override fun fullInfo() {
-        println("Release $newspaperNumber of newspaper $itemName with ID: $itemId, available: ${if (isAvailable) "Yes" else "No"}")
+        println("Release $newspaperNumber of newspaper $itemName from $month with ID: $itemId, available: ${if (isAvailable) "Yes" else "No"}")
     }
 
     override fun readInHall() {
@@ -226,3 +250,49 @@ class LibraryManager(private val itemList: MutableList<Item>) {
         }
     }
 }
+
+interface Shop {
+    fun sell(): Item
+}
+
+class BookShop : Shop {
+    override fun sell(): Book {
+        val book = Book(91, "Book from Bookshop", "Random Author", 99, true)
+        println("Manager bought a book")
+        return book;
+    }
+}
+
+class NewspaperShop : Shop {
+    override fun sell(): Newspaper {
+        val newspaper = Newspaper(92, "Newspaper from NewspaperShop", 63, "March", true)
+        println("Manager bought a newspaper")
+        return newspaper
+    }
+}
+
+class DiskShop : Shop {
+    override fun sell(): Disk {
+        val disk = Disk(93, "Disk from Diskshop", "DVD", true)
+        println("Manager bought a disk")
+        return disk
+    }
+}
+
+class PurchaseManager() {
+    fun buy(shop: Shop) {
+        shop.sell();
+    }
+}
+
+class PapperScanner<T : Readable>(private val item: T) where  T : Item {
+    fun toDisk(): Disk {
+        return Disk(item.itemId, item.itemName, "CD", true)
+
+    }
+}
+
+inline fun <reified T : Any> anyListToTypeList(list: List<Any>): List<T> {
+    return list.filterIsInstance<T>()
+}
+
