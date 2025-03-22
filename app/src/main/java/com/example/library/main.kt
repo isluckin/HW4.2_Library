@@ -15,6 +15,7 @@ fun main() {
         book1, book2, book3, dvd1, dvd2, dvd3, news1, news2, news3
     )
 
+    
     val manager = LibraryManager(itemList)
     val purchaseManager = PurchaseManager()
     val diskShop = DiskShop()
@@ -295,4 +296,3 @@ class PapperScanner<T : Readable>(private val item: T) where  T : Item {
 inline fun <reified T : Any> anyListToTypeList(list: List<Any>): List<T> {
     return list.filterIsInstance<T>()
 }
-
